@@ -25,12 +25,13 @@ describe 'Ubuntu 14.04 stemcell image', stemcell_image: true do
     end
 
     describe file('/boot/grub/menu.lst') do
-      before { skip 'until aws/openstack stop clobbering the symlink with "update-grub"' }
+      before { skip 'until alicloud/aws/openstack stop clobbering the symlink with "update-grub"' }
       it { should be_linked_to('./grub.conf') }
     end
   end
 
   context 'installs recent version of unshare so it gets the -p flag', {
+    exclude_on_alicloud: true,
     exclude_on_aws: true,
     exclude_on_azure: true,
     exclude_on_google: true,
@@ -108,6 +109,7 @@ describe 'Ubuntu 14.04 stemcell image', stemcell_image: true do
   end
 
   context 'installed by system-azure-network', {
+    exclude_on_alicloud: true,
     exclude_on_aws: true,
     exclude_on_google: true,
     exclude_on_vcloud: true,
@@ -124,6 +126,7 @@ describe 'Ubuntu 14.04 stemcell image', stemcell_image: true do
   end
 
   context 'installed by system_open_vm_tools', {
+    exclude_on_alicloud: true,
     exclude_on_aws: true,
     exclude_on_google: true,
     exclude_on_vcloud: true,
@@ -138,6 +141,7 @@ describe 'Ubuntu 14.04 stemcell image', stemcell_image: true do
   end
 
   context 'installed by system_softlayer_open_iscsi', {
+      exclude_on_alicloud: true,
       exclude_on_aws: true,
       exclude_on_google: true,
       exclude_on_vsphere: true,
@@ -152,6 +156,7 @@ describe 'Ubuntu 14.04 stemcell image', stemcell_image: true do
   end
 
   context 'installed by system_softlayer_multipath_tools', {
+      exclude_on_alicloud: true,
       exclude_on_aws: true,
       exclude_on_google: true,
       exclude_on_vsphere: true,
@@ -166,6 +171,7 @@ describe 'Ubuntu 14.04 stemcell image', stemcell_image: true do
   end
 
   context 'installed by image_vsphere_cdrom stage', {
+    exclude_on_alicloud: true,
     exclude_on_aws: true,
     exclude_on_google: true,
     exclude_on_vcloud: true,
@@ -202,7 +208,25 @@ HERE
     end
   end
 
+  context 'installed by bosh_alicloud_agent_settings', {
+    exclude_on_aws: true,
+    exclude_on_google: true,
+    exclude_on_openstack: true,
+    exclude_on_vcloud: true,
+    exclude_on_vsphere: true,
+    exclude_on_warden: true,
+    exclude_on_azure: true,
+    exclude_on_softlayer: true,
+  } do
+    describe file('/var/vcap/bosh/agent.json') do
+      it { should be_valid_json_file }
+      its(:content) { should match('"Type": "HTTP"') }
+    end
+  end
+
+
   context 'installed by bosh_aws_agent_settings', {
+    exclude_on_alicloud: true,
     exclude_on_google: true,
     exclude_on_openstack: true,
     exclude_on_vcloud: true,
@@ -218,6 +242,7 @@ HERE
   end
 
   context 'installed by bosh_google_agent_settings', {
+    exclude_on_alicloud: true,
     exclude_on_aws: true,
     exclude_on_openstack: true,
     exclude_on_vcloud: true,
@@ -233,6 +258,7 @@ HERE
   end
 
   context 'installed by bosh_openstack_agent_settings', {
+    exclude_on_alicloud: true,
     exclude_on_aws: true,
     exclude_on_google: true,
     exclude_on_vcloud: true,
@@ -250,6 +276,7 @@ HERE
   end
 
   context 'installed by bosh_vsphere_agent_settings', {
+    exclude_on_alicloud: true,
     exclude_on_aws: true,
     exclude_on_google: true,
     exclude_on_vcloud: true,
@@ -265,6 +292,7 @@ HERE
   end
 
   context 'installed by bosh_softlayer_agent_settings', {
+      exclude_on_alicloud: true,
       exclude_on_aws: true,
       exclude_on_google: true,
       exclude_on_vcloud: true,
@@ -302,12 +330,13 @@ HERE
       exclude_on_vsphere: true,
       exclude_on_azure: true,
     } do
-      it 'contains only the base set of packages for aws, openstack, warden' do
+      it 'contains only the base set of packages for alicloud, aws, openstack, warden' do
         expect(subject.stdout.split("\n")).to match_array(dpkg_list_ubuntu)
       end
     end
 
     describe command(dpkg_list_packages), {
+      exclude_on_alicloud: true,
       exclude_on_aws: true,
       exclude_on_vcloud: true,
       exclude_on_vsphere: true,
@@ -321,6 +350,7 @@ HERE
     end
 
     describe command(dpkg_list_packages), {
+      exclude_on_alicloud: true,
       exclude_on_aws: true,
       exclude_on_google: true,
       exclude_on_warden: true,
@@ -333,6 +363,7 @@ HERE
     end
 
     describe command(dpkg_list_packages), {
+      exclude_on_alicloud: true,
       exclude_on_aws: true,
       exclude_on_vcloud: true,
       exclude_on_vsphere: true,
