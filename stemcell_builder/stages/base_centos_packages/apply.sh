@@ -22,7 +22,7 @@ esac
 pkg_mgr install ${init_package_name}
 
 # Install base packages needed by both the warden and bosh
-packages="openssl-devel libyaml-devel lsof \
+packages="openssl-devel lsof \
 strace bind9-host dnsutils tcpdump iputils-arping \
 curl wget libcurl3 libcurl3-dev bison \
 readline-devel \
@@ -33,7 +33,7 @@ nfs-common flex psmisc apparmor-utils iptables sysstat \
 rsync openssh-server traceroute libncurses5-devs \
 libaio1 gdb libcap2-bin libcap-devel bzip2-devel \
 cmake sudo libuuid-devel parted NetworkManager e2fsprogs cloud-utils-growpart \
-xfsprogs gdisk nvme-cli"
+xfsprogs gdisk"
 pkg_mgr install ${packages} ${version_specific_packages}
 
 # Install runit

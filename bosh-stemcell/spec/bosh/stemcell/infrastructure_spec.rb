@@ -7,6 +7,7 @@ module Bosh::Stemcell
       it 'returns the correct infrastructure' do
         expect(Infrastructure.for('openstack')).to be_an(Infrastructure::OpenStack)
         expect(Infrastructure.for('aws')).to be_an(Infrastructure::Aws)
+        expect(Infrastructure.for('alicloud')).to be_an(Infrastructure::Alicloud)
         expect(Infrastructure.for('google')).to be_an(Infrastructure::Google)
         expect(Infrastructure.for('vsphere')).to be_a(Infrastructure::Vsphere)
         expect(Infrastructure.for('warden')).to be_a(Infrastructure::Warden)
@@ -94,6 +95,21 @@ module Bosh::Stemcell
     end
   end
 
+  describe Infrastructure::Alicloud do
+    its(:name)              { should eq('alicloud') }
+    its(:hypervisor)        { should eq('kvm') }
+    its(:default_disk_size) { should eq(3072) }
+    its(:disk_formats)      { should eq(['raw']) }
+    its(:stemcell_formats)  { should eq(['alicloud-raw']) }
+
+    it { should eq Infrastructure.for('alicloud') }
+    it { should_not eq Infrastructure.for('openstack') }
+
+    it 'has alicloyd specific additional cloud properties' do
+      expect(subject.additional_cloud_properties).to eq({'root_device_name' => '/dev/sda1'})
+    end
+  end
+
   describe Infrastructure::Google do
     its(:name)              { should eq('google') }
     its(:hypervisor)        { should eq('kvm') }
@@ -172,7 +188,7 @@ module Bosh::Stemcell
   describe Infrastructure::Softlayer do
     its(:name)              { should eq('softlayer') }
     its(:hypervisor)        { should eq('esxi') }
-    its(:default_disk_size) { should eq(25600) }
+    its(:default_disk_size) { should eq(3072) }
     its(:disk_formats)      { should eq(['ovf']) }
     its(:stemcell_formats)  { should eq(['softlayer-ovf']) }
 

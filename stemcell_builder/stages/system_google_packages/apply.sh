@@ -16,7 +16,17 @@ mkdir -p $chroot/tmp/google
 os_type="$(get_os_type)"
 if [ "${os_type}" == "ubuntu" ]
 then
-  if [ "${DISTRIB_CODENAME}" == "xenial" ]; then
+  if [ "${DISTRIB_CODENAME}" == "trusty" ]; then
+    # Copy google daemon packages into chroot
+    cp -R $assets_dir/google-ubuntu/*.deb $chroot/tmp/google/
+
+    run_in_chroot $chroot "apt-get update"
+    run_in_chroot $chroot "apt-get install -y python-setuptools python-boto"
+    run_in_chroot $chroot "dpkg --unpack /tmp/google/*.deb"
+    run_in_chroot $chroot "rm /var/lib/dpkg/info/google-compute-engine-init-trusty.postinst"
+    run_in_chroot $chroot "dpkg --configure google-compute-engine-init-trusty google-config-trusty google-compute-engine-trusty"
+    run_in_chroot $chroot "apt-get install -yf"
+  elif [ "${DISTRIB_CODENAME}" == "xenial" ]; then
     run_in_chroot $chroot "curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -"
 
     run_in_chroot $chroot "tee /etc/apt/sources.list.d/google-cloud.list << EOM
@@ -50,11 +60,5 @@ else
 fi
 
 # See https://github.com/cloudfoundry/bosh/issues/1399 for context
-SET_HOSTNAME_PATH=/etc/dhcp/dhclient-exit-hooks.d/google_set_hostname
-if [[ ! -f $chroot/$SET_HOSTNAME_PATH ]]; then
-  echo "Could not find ${SET_HOSTNAME_PATH}, exiting"
-  exit 2
-fi
-
-run_in_chroot "${chroot}" "rm -f ${SET_HOSTNAME_PATH}"
+run_in_chroot $chroot "rm -f /etc/dhcp/dhclient-exit-hooks.d/set_hostname"
 

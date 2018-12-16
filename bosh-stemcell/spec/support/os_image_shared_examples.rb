@@ -203,7 +203,7 @@ shared_examples_for 'every OS image' do
       expect(sshd_config).to be_mode(0600)
     end
 
-    it 'disallows root login (stig: V-38613)', exclude_on_softlayer: true do
+    it 'disallows root login (stig: V-38613)' do
       expect(sshd_config.content).to match(/^PermitRootLogin no$/)
     end
 
@@ -290,11 +290,11 @@ shared_examples_for 'every OS image' do
       expect(sshd_config.content).to match(/^Protocol 2$/)
       end
 
-    it 'sets AllowGroups to bosh_sshers (CIS 9.3.13)', exclude_on_softlayer: true do
+    it 'sets AllowGroups to bosh_sshers (CIS 9.3.13)' do
       expect(sshd_config.content).to match(/^AllowGroups bosh_sshers$/)
     end
 
-    it 'sets DenyUsers to root', exclude_on_softlayer: true do
+    it 'sets DenyUsers to root' do
       expect(sshd_config.content).to match(/^DenyUsers root$/)
     end
   end
@@ -708,7 +708,6 @@ shared_examples_for 'every OS image' do
       its(:content) { should match /^-a always,exit -F perm=x -F auid>=500 -F auid!=4294967295 -F path=\/usr\/sbin\/postdrop -k privileged/ }
       its(:content) { should match /^-a always,exit -F perm=x -F auid>=500 -F auid!=4294967295 -F path=\/usr\/sbin\/postqueue -k privileged/ }
       its(:content) { should match /^-a always,exit -F perm=x -F auid>=500 -F auid!=4294967295 -F path=\/usr\/sbin\/usernetctl -k privileged/ }
-      its(:content) { should match /^-a always,exit -F perm=x -F auid>=500 -F auid!=4294967295 -F path=\/usr\/sbin\/service -k privileged/ }
     end
   end
 

@@ -1,4 +1,11 @@
 PATH
+  remote: bosh-dev
+  specs:
+    bosh-dev (0.0.0)
+      bosh-stemcell
+      bundler
+
+PATH
   remote: bosh-stemcell
   specs:
     bosh-stemcell (0.0.0)
@@ -44,6 +51,7 @@ PLATFORMS
 
 DEPENDENCIES
   bosh-core
+  bosh-dev!
   bosh-stemcell!
   fakefs
   logging

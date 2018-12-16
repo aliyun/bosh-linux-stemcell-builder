@@ -11,9 +11,10 @@ rm -vrf $chroot/$bosh_dir/src
 
 rm -vrf $chroot/tmp/*
 
-# ubuntu needs /etc/resolv.conf to be a symlink, so delete contents
+# ubuntu trusty+ needs /etc/resolv.conf to be a symlink, so delete contents
 # instead of removing the file to preserve the link
 cat /dev/null > $chroot/etc/resolv.conf
+
 
 # Ubuntu Trusty resolvconf package populates /etc/resolv.conf from files below
 if [ -f $chroot/etc/resolvconf/resolv.conf.d/head ]; then
@@ -26,12 +27,4 @@ fi
 
 if [ -f $chroot/etc/resolvconf/resolv.conf.d/tail ]; then
   cat /dev/null > $chroot/etc/resolvconf/resolv.conf.d/tail
-fi
-
-if [ -f $chroot/run/resolvconf/interface/original.resolvconf ]; then
-  cat /dev/null > $chroot/run/resolvconf/interface/original.resolvconf
-fi
-
-if [ -f $chroot/etc/resolvconf/resolv.conf.d/original ]; then
-  cat /dev/null > $chroot/etc/resolvconf/resolv.conf.d/original
 fi

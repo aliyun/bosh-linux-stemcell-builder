@@ -25,13 +25,12 @@ describe 'Ubuntu 16.04 stemcell image', stemcell_image: true do
     end
 
     describe file('/boot/grub/menu.lst') do
-      before { skip 'until alicloud/aws/openstack stop clobbering the symlink with "update-grub"' }
+      before { skip 'until aws/openstack stop clobbering the symlink with "update-grub"' }
       it { should be_linked_to('./grub.conf') }
     end
   end
 
   context 'installs recent version of unshare so it gets the -p flag', {
-    exclude_on_alicloud: true,
     exclude_on_aws: true,
     exclude_on_azure: true,
     exclude_on_google: true,
@@ -68,9 +67,11 @@ describe 'Ubuntu 16.04 stemcell image', stemcell_image: true do
 
       it 'should be a proper superset of the installed static libraries' do
         libraries_to_remove = subject.content.split("\n")
-        found_libraries = command("find / -iname '*.a' | sort | uniq | sed -E 's/(linux.*4.15).*-generic/\\1/'").stdout.split("\n")
+        found_libraries = command('find / -iname "*.a" | sort | uniq').stdout.split("\n")
 
-        expect(libraries_to_remove).to include(*found_libraries)
+        found_libraries.each do |library|
+          expect(libraries_to_remove.include?(library)).to eq(true)
+        end
       end
     end
   end
@@ -107,7 +108,6 @@ describe 'Ubuntu 16.04 stemcell image', stemcell_image: true do
   end
 
   context 'installed by system-azure-network', {
-    exclude_on_alicloud: true,
     exclude_on_aws: true,
     exclude_on_google: true,
     exclude_on_vcloud: true,
@@ -124,7 +124,6 @@ describe 'Ubuntu 16.04 stemcell image', stemcell_image: true do
   end
 
   context 'installed by system_open_vm_tools', {
-    exclude_on_alicloud: true,
     exclude_on_aws: true,
     exclude_on_google: true,
     exclude_on_vcloud: true,
@@ -139,7 +138,6 @@ describe 'Ubuntu 16.04 stemcell image', stemcell_image: true do
   end
 
   context 'installed by system_softlayer_open_iscsi', {
-      exclude_on_alicloud: true,
       exclude_on_aws: true,
       exclude_on_google: true,
       exclude_on_vsphere: true,
@@ -154,7 +152,6 @@ describe 'Ubuntu 16.04 stemcell image', stemcell_image: true do
   end
 
   context 'installed by system_softlayer_multipath_tools', {
-      exclude_on_alicloud: true,
       exclude_on_aws: true,
       exclude_on_google: true,
       exclude_on_vsphere: true,
@@ -169,7 +166,6 @@ describe 'Ubuntu 16.04 stemcell image', stemcell_image: true do
   end
 
   context 'installed by image_vsphere_cdrom stage', {
-    exclude_on_alicloud: true,
     exclude_on_aws: true,
     exclude_on_google: true,
     exclude_on_vcloud: true,
@@ -206,24 +202,7 @@ HERE
     end
   end
 
-  context 'installed by bosh_alicloud_agent_settings', {
-    exclude_on_aws: true,
-    exclude_on_google: true,
-    exclude_on_openstack: true,
-    exclude_on_vcloud: true,
-    exclude_on_vsphere: true,
-    exclude_on_warden: true,
-    exclude_on_azure: true,
-    exclude_on_softlayer: true,
-  } do
-    describe file('/var/vcap/bosh/agent.json') do
-      it { should be_valid_json_file }
-      its(:content) { should match('"Type": "HTTP"') }
-    end
-  end
-
   context 'installed by bosh_aws_agent_settings', {
-    exclude_on_alicloud: true,
     exclude_on_google: true,
     exclude_on_openstack: true,
     exclude_on_vcloud: true,
@@ -239,7 +218,6 @@ HERE
   end
 
   context 'installed by bosh_google_agent_settings', {
-    exclude_on_alicloud: true,
     exclude_on_aws: true,
     exclude_on_openstack: true,
     exclude_on_vcloud: true,
@@ -255,7 +233,6 @@ HERE
   end
 
   context 'installed by bosh_openstack_agent_settings', {
-    exclude_on_alicloud: true,
     exclude_on_aws: true,
     exclude_on_google: true,
     exclude_on_vcloud: true,
@@ -273,7 +250,6 @@ HERE
   end
 
   context 'installed by bosh_vsphere_agent_settings', {
-    exclude_on_alicloud: true,
     exclude_on_aws: true,
     exclude_on_google: true,
     exclude_on_vcloud: true,
@@ -289,7 +265,6 @@ HERE
   end
 
   context 'installed by bosh_softlayer_agent_settings', {
-      exclude_on_alicloud: true,
       exclude_on_aws: true,
       exclude_on_google: true,
       exclude_on_vcloud: true,
@@ -300,8 +275,8 @@ HERE
   } do
     describe file('/var/vcap/bosh/agent.json') do
       it { should be_valid_json_file }
-      its(:content) { should match('"Type": "HTTP"') }
-      its(:content) { should match('"UserDataPath": "/rest/v3.1/SoftLayer_Resource_Metadata/getUserMetadata.json"') }
+      its(:content) { should match('"Type": "File"') }
+      its(:content) { should match('"SettingsPath": "/var/vcap/bosh/user_data.json"') }
       its(:content) { should match('"UseRegistry": true') }
     end
   end
@@ -322,35 +297,31 @@ HERE
   end
 
   describe 'installed packages' do
-    dpkg_list_packages = "dpkg --get-selections | cut -f1 | sed -E 's/(linux.*4.15).*/\\1/'"
+    dpkg_list_packages = "dpkg --get-selections | cut -f1 | sed -E 's/(linux.*4.4).*/\\1/'"
 
     let(:dpkg_list_ubuntu) { File.readlines(spec_asset('dpkg-list-ubuntu-xenial.txt')).map(&:chop) }
     let(:dpkg_list_google_ubuntu) { File.readlines(spec_asset('dpkg-list-ubuntu-xenial-google-additions.txt')).map(&:chop) }
     let(:dpkg_list_vsphere_ubuntu) { File.readlines(spec_asset('dpkg-list-ubuntu-xenial-vsphere-additions.txt')).map(&:chop) }
     let(:dpkg_list_azure_ubuntu) { File.readlines(spec_asset('dpkg-list-ubuntu-xenial-azure-additions.txt')).map(&:chop) }
-    let(:dpkg_list_softlayer_ubuntu) { File.readlines(spec_asset('dpkg-list-ubuntu-xenial-softlayer-additions.txt')).map(&:chop) }
 
     describe command(dpkg_list_packages), {
       exclude_on_google: true,
       exclude_on_vcloud: true,
       exclude_on_vsphere: true,
       exclude_on_azure: true,
-      exclude_on_softlayer: true,
     } do
-      it 'contains only the base set of packages for alicloud, aws, openstack, warden' do
+      it 'contains only the base set of packages for aws, openstack, warden' do
         expect(subject.stdout.split("\n")).to match_array(dpkg_list_ubuntu)
       end
     end
 
     describe command(dpkg_list_packages), {
-      exclude_on_alicloud: true,
       exclude_on_aws: true,
       exclude_on_vcloud: true,
       exclude_on_vsphere: true,
       exclude_on_warden: true,
       exclude_on_azure: true,
       exclude_on_openstack: true,
-      exclude_on_softlayer: true,
     } do
       it 'contains only the base set of packages plus google-specific packages' do
         expect(subject.stdout.split("\n")).to match_array(dpkg_list_ubuntu.concat(dpkg_list_google_ubuntu))
@@ -358,13 +329,11 @@ HERE
     end
 
     describe command(dpkg_list_packages), {
-      exclude_on_alicloud: true,
       exclude_on_aws: true,
       exclude_on_google: true,
       exclude_on_warden: true,
       exclude_on_azure: true,
       exclude_on_openstack: true,
-      exclude_on_softlayer: true,
     } do
       it 'contains only the base set of packages plus vsphere-specific packages' do
         expect(subject.stdout.split("\n")).to match_array(dpkg_list_ubuntu.concat(dpkg_list_vsphere_ubuntu))
@@ -372,32 +341,15 @@ HERE
     end
 
     describe command(dpkg_list_packages), {
-      exclude_on_alicloud: true,
       exclude_on_aws: true,
       exclude_on_vcloud: true,
       exclude_on_vsphere: true,
       exclude_on_google: true,
       exclude_on_warden: true,
       exclude_on_openstack: true,
-      exclude_on_softlayer: true,
     } do
       it 'contains only the base set of packages plus azure-specific packages' do
         expect(subject.stdout.split("\n")).to match_array(dpkg_list_ubuntu.concat(dpkg_list_azure_ubuntu))
-      end
-    end
-
-    describe command(dpkg_list_packages), {
-      exclude_on_alicloud: true,
-      exclude_on_aws: true,
-      exclude_on_vcloud: true,
-      exclude_on_vsphere: true,
-      exclude_on_google: true,
-      exclude_on_warden: true,
-      exclude_on_azure: true,
-      exclude_on_openstack: true,
-    } do
-      it 'contains only the base set of packages plus softlayer-specific packages' do
-        expect(subject.stdout.split("\n")).to match_array(dpkg_list_ubuntu.concat(dpkg_list_softlayer_ubuntu))
       end
     end
   end
@@ -408,6 +360,7 @@ describe 'Ubuntu 16.04 stemcell tarball', stemcell_tarball: true do
     describe file("#{ENV['STEMCELL_WORKDIR']}/stemcell/packages.txt", ShelloutTypes::Chroot.new('/')) do
       it { should be_file }
       its(:content) { should match 'Status=Not/Inst/Conf-files/Unpacked/halF-conf/Half-inst/trig-aWait/Trig-pend' }
+      its(:content) { should match 'ubuntu-minimal' }
     end
   end
 

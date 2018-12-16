@@ -5,7 +5,7 @@ releases: []
 
 stemcells:
 - alias: default
-  os: ubuntu-xenial
+  os: ubuntu-trusty
   version: ((stemcell_version))
 
 update:

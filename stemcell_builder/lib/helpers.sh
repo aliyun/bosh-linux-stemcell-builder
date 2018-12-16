@@ -27,12 +27,12 @@ function run_in_chroot {
   # `unshare -f -p` to prevent `kill -HUP 1` from causing `init` to exit;
   unshare -f -p -m $SHELL <<EOS
     mkdir -p $chroot/dev
-    mount -n --bind /dev $chroot/dev
-    mount -n --bind /dev/shm $chroot/dev/shm
-    mount -n --bind /dev/pts $chroot/dev/pts
+    mount -o bind /dev $chroot/dev
+    mount -o bind /dev/shm $chroot/dev/shm
+    mount -o bind /dev/pts $chroot/dev/pts
 
     mkdir -p $chroot/proc
-    mount -n --bind /proc $chroot/proc
+    mount -o bind /proc $chroot/proc
 
     chroot $chroot env -i PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin http_proxy=${http_proxy:-} bash -e -c "$script"
 EOS
@@ -74,22 +74,4 @@ function is_ppc64le() {
   else
     return 1
   fi
-}
-
-curl_five_times() {
-  output_filename="${1}"
-  address="${2}"
-  download_attempt_count=0
-  set +e
-  until [ $download_attempt_count -ge 5 ]
-  do
-    curl -L -o $output_filename ${address} && break
-    download_attempt_count=$((download_attempt_count+1))
-  done
-
-  if [ ! -e ${output_filename} ]; then
-    echo "Failed to download ${output_filename}"
-    exit 1
-  fi
-  set -e
 }

@@ -124,6 +124,7 @@ module Bosh::Stemcell
     describe '#agent_stages' do
       let(:agent_stages) do
         [
+          :bosh_libyaml,
           :bosh_go_agent,
           :aws_cli,
           :google_gcscli,
@@ -159,11 +160,10 @@ module Bosh::Stemcell
             :bosh_harden,
             :bosh_aws_agent_settings,
             :bosh_clean_ssh,
-            :udev_aws_rules,
             :image_create,
             :image_install_grub,
             :image_aws_update_grub,
-            :bosh_package_list,
+            :bosh_package_list
           ]
         }
 
@@ -207,7 +207,7 @@ module Bosh::Stemcell
             :bosh_clean_ssh,
             :image_create,
             :image_install_grub,
-            :bosh_package_list,
+            :bosh_package_list
           ]
         }
 
@@ -503,7 +503,6 @@ module Bosh::Stemcell
                 :bosh_harden,
                 :bosh_enable_password_authentication,
                 :bosh_softlayer_agent_settings,
-                :bosh_config_root_ssh_login,
                 :bosh_clean_ssh,
                 :image_create,
                 :image_install_grub,

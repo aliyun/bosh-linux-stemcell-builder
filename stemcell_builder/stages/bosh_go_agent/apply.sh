@@ -23,23 +23,19 @@ ln -s /etc/sv/monit /etc/service/monit
 
 # Alerts for monit config
 cp -a $assets_dir/alerts.monitrc $chroot/var/vcap/monit/alerts.monitrc
+
 cd $assets_dir
-
-wget -O /usr/bin/meta4 https://github.com/dpb587/metalink/releases/download/v0.2.0/meta4-0.2.0-linux-amd64 \
-  && echo "81a592eaf647358563f296aced845ac60d9061a45b30b852d1c3f3674720fe19  /usr/bin/meta4" | shasum -a 256 -c \
-  && chmod +x /usr/bin/meta4
-
-os_type="$(get_os_type)"
-bosh_agent_version=$(cat ${assets_dir}/bosh-agent-version)
 if is_ppc64le; then
-  /usr/bin/meta4 file-download --metalink=${assets_dir}/metalink.meta4 --file=bosh-agent-${bosh_agent_version}-linux-ppc64le bosh-agent
+  curl -L -o bosh-agent "https://s3.amazonaws.com/bosh-agent-binaries/bosh-agent-2.91.5-linux-ppc64le?versionId=d4arbgahpr1s9GHNYO5bJcqCRuAWBhJH"
+  echo "dc17635d72f0e046225ceeb4315dd46bcc8813cebac7497cac0ead3c04906aa5  bosh-agent" | shasum -a 256 -c -
 else
-  /usr/bin/meta4 file-download --metalink=${assets_dir}/metalink.meta4 --file=bosh-agent-${bosh_agent_version}-linux-amd64 bosh-agent
+  curl -L -o bosh-agent "https://s3.amazonaws.com/bosh-agent-binaries/bosh-agent-2.91.5-linux-amd64?versionId=PhCZasDp62geRk4SJZkaxwLA.JQ_rKql"
+  echo "bdc8a3ea3bf794081a7ecb8b1ecbf252905c6a1041ee98ab4e40bb3f9777ec7e  bosh-agent" | shasum -a 256 -c -
 fi
-
 mv bosh-agent $chroot/var/vcap/bosh/bin/
 
 cp $assets_dir/bosh-agent-rc $chroot/var/vcap/bosh/bin/bosh-agent-rc
+cp $assets_dir/mbus/agent.{cert,key} $chroot/var/vcap/bosh/
 
 # Download CLI source or release from github into assets directory
 cd $assets_dir
@@ -55,6 +51,7 @@ chmod +x $chroot/var/vcap/bosh/bin/bosh-blobstore-dav
 chmod +x $chroot/var/vcap/bosh/bin/bosh-agent
 chmod +x $chroot/var/vcap/bosh/bin/bosh-agent-rc
 chmod +x $chroot/var/vcap/bosh/bin/bosh-blobstore-dav
+chmod 600 $chroot/var/vcap/bosh/agent.key
 
 # Setup additional permissions
 run_in_chroot $chroot "

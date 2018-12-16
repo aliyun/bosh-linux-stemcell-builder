@@ -23,13 +23,16 @@ describe 'Ubuntu 16.04 OS image', os_image: true do
   end
 
   context 'installed by system_kernel' do
-    describe package('linux-generic-hwe-16.04') do
+    describe package('linux-headers-4.10.0-38-generic') do
+      it { should be_installed }
+    end
+    describe package('linux-image-4.10.0-38-generic') do
       it { should be_installed }
     end
   end
 
   context 'installed by base_debootstrap' do
-    %w[
+    %w(
       adduser
       apt
       apt-utils
@@ -41,6 +44,7 @@ describe 'Ubuntu 16.04 OS image', os_image: true do
       eject
       gnupg
       ifupdown
+      initramfs-tools
       iproute2
       iputils-ping
       isc-dhcp-client
@@ -63,7 +67,7 @@ describe 'Ubuntu 16.04 OS image', os_image: true do
       ureadahead
       vim-tiny
       whiptail
-    ].each do |pkg|
+    ).each do |pkg|
       describe package(pkg) do
         it { should be_installed }
       end
@@ -91,6 +95,7 @@ describe 'Ubuntu 16.04 OS image', os_image: true do
       end
     end
   end
+
 
   describe 'base_apt' do
     describe file('/etc/apt/sources.list') do
@@ -122,6 +127,7 @@ describe 'Ubuntu 16.04 OS image', os_image: true do
       its(:content) { should match 'Restart=always' }
       its(:content) { should match 'KillMode=process' }
     end
+
   end
 
   context 'installed by base_ubuntu_build_essential' do
@@ -132,7 +138,7 @@ describe 'Ubuntu 16.04 OS image', os_image: true do
 
   context 'installed by base_ubuntu_packages' do
     # rsyslog-mmjsonparse is removed because of https://gist.github.com/allomov-altoros/cd579aa76f3049bee9c7
-    %w[
+    %w(
       anacron
       apparmor-utils
       bind9-host
@@ -165,7 +171,6 @@ describe 'Ubuntu 16.04 OS image', os_image: true do
       lsof
       module-assistant
       module-init-tools
-      nvme-cli
       openssh-server
       psmisc
       quota
@@ -185,7 +190,7 @@ describe 'Ubuntu 16.04 OS image', os_image: true do
       uuid-dev
       wget
       zip
-    ].reject { |pkg| Bosh::Stemcell::Arch.ppc64le? && ((pkg == 'rsyslog-mmjsonparse') || (pkg == 'rsyslog-gnutls') || (pkg == 'rsyslog-relp')) }.each do |pkg|
+    ).reject{ |pkg| Bosh::Stemcell::Arch.ppc64le? and ( pkg == 'rsyslog-mmjsonparse' or pkg == 'rsyslog-gnutls' or pkg == 'rsyslog-relp') }.each do |pkg|
       describe package(pkg) do
         it { should be_installed }
       end
@@ -195,35 +200,24 @@ describe 'Ubuntu 16.04 OS image', os_image: true do
       it { should be_file }
       it { should be_executable }
     end
-
-    context 'zfs' do
-      %w[
-       /lib/modules/*/kernel/zfs/
-        /usr/src/linux-headers-*/zfs
-      ].each do |folder|
-        describe file(folder) do
-          it { should_not be_directory }
-        end
-      end
-    end
   end
 
   context 'installed by base_ssh' do
     subject(:sshd_config) { file('/etc/ssh/sshd_config') }
 
     it 'only allow 3DES and AES series ciphers (stig: V-38617)' do
-      ciphers = %w[
+      ciphers = %w(
         aes256-gcm@openssh.com
         aes128-gcm@openssh.com
         aes256-ctr
         aes192-ctr
         aes128-ctr
-      ].join(',')
+      ).join(',')
       expect(sshd_config.content).to match(/^Ciphers #{ciphers}$/)
     end
 
     it 'allows only secure HMACs and the weaker SHA1 HMAC required by golang ssh lib' do
-      macs = %w[
+      macs = %w(
         hmac-sha2-512-etm@openssh.com
         hmac-sha2-256-etm@openssh.com
         hmac-ripemd160-etm@openssh.com
@@ -232,34 +226,34 @@ describe 'Ubuntu 16.04 OS image', os_image: true do
         hmac-sha2-256
         hmac-ripemd160
         hmac-sha1
-      ].join(',')
+      ).join(',')
       expect(sshd_config.content).to match(/^MACs #{macs}$/)
     end
   end
 
   context 'installed by system_grub' do
     if Bosh::Stemcell::Arch.ppc64le?
-      %w[
+      %w(
         grub2
-      ].each do |pkg|
+      ).each do |pkg|
         describe package(pkg) do
           it { should be_installed }
         end
       end
-      %w[grub grubenv grub.chrp].each do |grub_file|
+      %w(grub grubenv grub.chrp).each do |grub_file|
         describe file("/boot/grub/#{grub_file}") do
           it { should be_file }
         end
       end
     else
-      %w[
+      %w(
         grub
-      ].each do |pkg|
+      ).each do |pkg|
         describe package(pkg) do
           it { should be_installed }
         end
       end
-      %w[e2fs_stage1_5 stage1 stage2].each do |grub_stage|
+      %w(e2fs_stage1_5 stage1 stage2).each do |grub_stage|
         describe file("/boot/grub/#{grub_stage}") do
           it { should be_file }
         end
@@ -271,6 +265,12 @@ describe 'Ubuntu 16.04 OS image', os_image: true do
     describe file('/etc/passwd') do
       it { should be_file }
       its(:content) { should match '/home/vcap:/bin/bash' }
+    end
+  end
+
+  context 'installed from source' do
+    describe package('libyaml-dev') do
+      it { should_not be_installed }
     end
   end
 
@@ -290,10 +290,10 @@ describe 'Ubuntu 16.04 OS image', os_image: true do
     end
 
     describe file '/etc/apt/apt.conf.d/02periodic' do
-      its(:content) { should match <<~EOF }
-        APT::Periodic {
-          Enable "0";
-        }
+      its(:content) { should match <<EOF }
+APT::Periodic {
+  Enable "0";
+}
 EOF
     end
   end
@@ -358,35 +358,35 @@ EOF
   end
 
   context 'ensure auditd file permissions and ownership (stig: V-38663) (stig: V-38664) (stig: V-38665)' do
-    [[0o644, '/usr/share/lintian/overrides/auditd'],
-     [0o755, '/usr/bin/auvirt'],
-     [0o755, '/usr/bin/ausyscall'],
-     [0o755, '/usr/bin/aulastlog'],
-     [0o755, '/usr/bin/aulast'],
-     [0o750, '/var/log/audit'],
-     [0o755, '/sbin/aureport'],
-     [0o755, '/sbin/auditd'],
-     [0o755, '/sbin/autrace'],
-     [0o755, '/sbin/ausearch'],
-     [0o755, '/sbin/augenrules'],
-     [0o755, '/sbin/auditctl'],
-     [0o755, '/sbin/audispd'],
-     [0o750, '/etc/audisp'],
-     [0o750, '/etc/audisp/plugins.d'],
-     [0o640, '/etc/audisp/plugins.d/af_unix.conf'],
-     [0o640, '/etc/audisp/plugins.d/syslog.conf'],
-     [0o640, '/etc/audisp/audispd.conf'],
-     [0o755, '/etc/init.d/auditd'],
-     [0o750, '/etc/audit'],
-     [0o750, '/etc/audit/rules.d'],
-     [0o640, '/etc/audit/rules.d/audit.rules'],
-     [0o640, '/etc/audit/audit.rules'],
-     [0o640, '/etc/audit/auditd.conf'],
-     [0o644, '/etc/default/auditd'],
-     [0o644, '/lib/systemd/system/auditd.service']].each do |tuple|
+    [[0644, '/usr/share/lintian/overrides/auditd'],
+    [0755, '/usr/bin/auvirt'],
+    [0755, '/usr/bin/ausyscall'],
+    [0755, '/usr/bin/aulastlog'],
+    [0755, '/usr/bin/aulast'],
+    [0750, '/var/log/audit'],
+    [0755, '/sbin/aureport'],
+    [0755, '/sbin/auditd'],
+    [0755, '/sbin/autrace'],
+    [0755, '/sbin/ausearch'],
+    [0755, '/sbin/augenrules'],
+    [0755, '/sbin/auditctl'],
+    [0755, '/sbin/audispd'],
+    [0750, '/etc/audisp'],
+    [0750, '/etc/audisp/plugins.d'],
+    [0640, '/etc/audisp/plugins.d/af_unix.conf'],
+    [0640, '/etc/audisp/plugins.d/syslog.conf'],
+    [0640, '/etc/audisp/audispd.conf'],
+    [0755, '/etc/init.d/auditd'],
+    [0750, '/etc/audit'],
+    [0750, '/etc/audit/rules.d'],
+    [0640, '/etc/audit/rules.d/audit.rules'],
+    [0640, '/etc/audit/audit.rules'],
+    [0640, '/etc/audit/auditd.conf'],
+    [0644, '/etc/default/auditd'],
+    [0644, '/lib/systemd/system/auditd.service']].each do |tuple|
       describe file(tuple[1]) do
-        it ('should be owned by root') { should be_owned_by('root') }
-        it ("should have mode #{tuple[0]}") { should be_mode(tuple[0]) }
+        it ('should be owned by root') { should be_owned_by('root')}
+        it ("should have mode #{tuple[0]}") { should be_mode(tuple[0])}
         context 'should be owned by root group' do
           its(:group) { should eq('root') }
         end
@@ -455,7 +455,7 @@ EOF
 
   context 'display the number of unsuccessful logon/access attempts since the last successful logon/access (stig: V-51875)' do
     describe file('/etc/pam.d/common-password') do
-      its(:content) { should match /session     required      pam_lastlog\.so showfailed/ }
+      its(:content){ should match /session     required      pam_lastlog\.so showfailed/ }
     end
   end
 
@@ -513,9 +513,8 @@ systemd-resolve:x:102:104:systemd Resolver,,,:/run/systemd/resolve:/bin/false
 systemd-bus-proxy:x:103:105:systemd Bus Proxy,,,:/run/systemd:/bin/false
 syslog:x:104:108::/home/syslog:/bin/false
 _apt:x:105:65534::/nonexistent:/bin/false
-messagebus:x:106:110::/var/run/dbus:/bin/false
-sshd:x:107:65534::/var/run/sshd:/usr/sbin/nologin
-_chrony:x:108:112:Chrony daemon,,,:/var/lib/chrony:/bin/false
+sshd:x:106:65534::/var/run/sshd:/usr/sbin/nologin
+_chrony:x:107:111:Chrony daemon,,,:/var/lib/chrony:/bin/false
 vcap:x:1000:1000:BOSH System User:/home/vcap:/bin/bash
 HERE
     end
@@ -546,7 +545,6 @@ systemd-resolve:\*:(\d{5}):0:99999:7:::
 systemd-bus-proxy:\*:(\d{5}):0:99999:7:::
 syslog:\*:(\d{5}):0:99999:7:::
 _apt:\*:(\d{5}):0:99999:7:::
-messagebus:\*:(\d{5}):0:99999:7:::
 sshd:\*:(\d{5}):0:99999:7:::
 _chrony:(.+):(\d{5}):0:99999:7:::
 vcap:(.+):(\d{5}):1:99999:7:::\Z
@@ -605,9 +603,8 @@ input:x:106:
 crontab:x:107:
 syslog:x:108:
 netdev:x:109:
-messagebus:x:110:
-ssh:x:111:
-_chrony:x:112:
+ssh:x:110:
+_chrony:x:111:
 admin:x:999:vcap
 vcap:x:1000:syslog
 bosh_sshers:x:1001:vcap
@@ -665,7 +662,6 @@ input:!::
 crontab:!::
 syslog:!::
 netdev:!::
-messagebus:!::
 ssh:!::
 _chrony:!::
 admin:!::vcap

@@ -1,6 +1,8 @@
 shared_examples_for 'an upstart-based OS image' do
+
   context 'installed by rsyslog_config' do
-    RSYSLOG_EXECUTABLE = '/usr/sbin/rsyslogd'.freeze
+
+    RSYSLOG_EXECUTABLE = '/usr/sbin/rsyslogd'
 
     describe file('/etc/init/rsyslog.conf') do
       its(:content) { should match RSYSLOG_EXECUTABLE }
@@ -14,6 +16,9 @@ shared_examples_for 'an upstart-based OS image' do
 
     # Make sure that rsyslog starts with the machine
     describe file('/etc/init.d/rsyslog'), :rsyslog_check do
+      if ENV["DISTRIB_CODENAME"] == "trusty"
+        it { should be_linked_to('/lib/init/upstart-job') }
+      end
       it { should be_executable }
     end
 

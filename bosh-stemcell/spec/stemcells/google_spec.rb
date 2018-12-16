@@ -38,6 +38,7 @@ enable-kernel-logging.conf
 
     usrbin = [
       '/usr/bin/google_instance_setup',
+      '/usr/bin/google_ip_forwarding_daemon',
       '/usr/bin/google_accounts_daemon',
       '/usr/bin/google_clock_skew_daemon',
       '/usr/bin/google_metadata_script_runner'
@@ -47,6 +48,8 @@ enable-kernel-logging.conf
       '/etc/init/google-accounts-daemon.conf',
       '/etc/init/google-clock-skew-daemon.conf',
       '/etc/init/google-instance-setup.conf',
+      '/etc/init/google-ip-forwarding-daemon.conf',
+      '/etc/init/google-network-setup.conf',
       '/etc/init/google-shutdown-scripts.conf',
       '/etc/init/google-startup-scripts.conf'
     ]
@@ -55,13 +58,17 @@ enable-kernel-logging.conf
       '{lib_path}/systemd/system/google-accounts-daemon.service',
       '{lib_path}/systemd/system/google-clock-skew-daemon.service',
       '{lib_path}/systemd/system/google-instance-setup.service',
+      '{lib_path}/systemd/system/google-ip-forwarding-daemon.service',
+      '{lib_path}/systemd/system/google-network-setup.service',
       '{lib_path}/systemd/system/google-shutdown-scripts.service',
       '{lib_path}/systemd/system/google-startup-scripts.service'
     ]
 
     configs = usrbin
 
-    configs += if ENV['OS_VERSION'] == 'xenial'
+    configs += if ENV['OS_VERSION'] == 'trusty'
+                 upstart_configs
+               elsif ENV['OS_VERSION'] == 'xenial'
                  systemd_configs.map do |config|
                    config.gsub('{lib_path}', '/lib')
                  end
