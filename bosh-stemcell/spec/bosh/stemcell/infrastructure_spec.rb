@@ -5,6 +5,7 @@ module Bosh::Stemcell
   describe Infrastructure do
     describe '.for' do
       it 'returns the correct infrastructure' do
+        expect(Infrastructure.for('alicloud')).to be_an(Infrastructure::Alicloud)
         expect(Infrastructure.for('openstack')).to be_an(Infrastructure::OpenStack)
         expect(Infrastructure.for('aws')).to be_an(Infrastructure::Aws)
         expect(Infrastructure.for('google')).to be_an(Infrastructure::Google)
@@ -67,6 +68,7 @@ module Bosh::Stemcell
     it 'is comparable to other infrastructures' do
       expect(subject).to eq(Infrastructure.for('null'))
 
+      expect(subject).to_not eq(Infrastructure.for('alicloud'))
       expect(subject).to_not eq(Infrastructure.for('openstack'))
       expect(subject).to_not eq(Infrastructure.for('aws'))
       expect(subject).to_not eq(Infrastructure.for('vsphere'))
@@ -76,6 +78,21 @@ module Bosh::Stemcell
 
     it 'defaults to no additional cloud properties' do
       expect(subject.additional_cloud_properties).to eq({})
+    end
+  end
+
+  describe Infrastructure::Alicloud do
+    its(:name)              { should eq('alicloud') }
+    its(:hypervisor)        { should eq('kvm') }
+    its(:default_disk_size) { should eq(3072) }
+    its(:disk_formats)      { should eq(['raw']) }
+    its(:stemcell_formats)  { should eq(['alicloud-raw']) }
+
+    it { should eq Infrastructure.for('alicloud') }
+    it { should_not eq Infrastructure.for('aws') }
+
+    it 'has alicloud specific additional cloud properties' do
+      expect(subject.additional_cloud_properties).to eq({'root_device_name' => '/dev/vda1'})
     end
   end
 

@@ -114,6 +114,17 @@ module Bosh::Stemcell
       # rubocop:enable MethodLength
 
       describe 'infrastructure variation' do
+        context 'when infrastruture is alicloud' do
+          let(:infrastructure) { Infrastructure.for('alicloud') }
+          let(:default_disk_size) { 3072 }
+
+          it_sets_correct_environment_variables
+
+          it 'has no "image_ovftool_path" key' do
+            expect(stemcell_builder_options.default).not_to have_key('image_ovftool_path')
+          end
+        end
+
         context 'when infrastruture is aws' do
           let(:infrastructure) { Infrastructure.for('aws') }
           let(:default_disk_size) { 3072 }
