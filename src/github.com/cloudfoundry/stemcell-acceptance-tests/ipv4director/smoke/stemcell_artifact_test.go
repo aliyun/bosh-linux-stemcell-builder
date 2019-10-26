@@ -76,7 +76,7 @@ var _ = Describe("stemcell.tgz", func() {
 			Expect(stemcellManifest.StemcellFormats).NotTo(Equal([]string{}))
 
 			Expect(stemcellManifest.BoshProtocol).To(Equal(1))
-			Expect(stemcellManifest.ApiVersion).To(Equal(3))
+			Expect(stemcellManifest.ApiVersion).To(Equal(2))
 		})
 	})
 })
